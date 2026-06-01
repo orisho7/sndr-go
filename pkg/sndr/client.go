@@ -121,12 +121,33 @@ func (s *EmailsService) Send(ctx context.Context, req *SendRequest, idempotencyK
 		return nil, fmt.Errorf("send request cannot be nil")
 	}
 
-	body, err := json.Marshal(req)
+	// Normalize 'To' field: ensure it's always a slice of strings for the API
+	var to []string
+	switch v := req.To.(type) {
+	case string:
+		to = []string{v}
+	case []string:
+		to = v
+	case []interface{}:
+		for _, item := range v {
+			if str, ok := item.(string); ok {
+				to = append(to, str)
+			}
+		}
+	default:
+		return nil, fmt.Errorf("invalid 'to' field type: expected string or []string")
+	}
+
+	// Create a copy to avoid mutating the original request struct
+	normalizedReq := *req
+	normalizedReq.To = to
+
+	body, err := json.Marshal(normalizedReq)
 	if err != nil {
 		return nil, fmt.Errorf("marshal request: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/v1/emails", strings.TrimSuffix(s.client.baseURL, "/"))
+	url := fmt.Sprintf("%s/v1/send", strings.TrimSuffix(s.client.baseURL, "/"))
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)

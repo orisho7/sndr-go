@@ -3,7 +3,7 @@ package sndr
 // SendRequest defines the payload for the /v1/emails endpoint.
 type SendRequest struct {
 	From        string            `json:"from"`
-	To          interface{}       `json:"to"` // Can be string or []string
+	To          any               `json:"to"` // Supports string or []string
 	Subject     string            `json:"subject"`
 	HTML        string            `json:"html,omitempty"`
 	Text        string            `json:"text,omitempty"`
@@ -37,7 +37,7 @@ type ErrorResponse struct {
 type EmailResponse struct {
 	ID        string            `json:"id"`
 	From      string            `json:"from"`
-	To      []string          `json:"to"`
+	To        []string          `json:"to"`
 	Subject   string            `json:"subject"`
 	Status    string            `json:"status"`
 	Timestamp string            `json:"timestamp"`
@@ -115,4 +115,3 @@ type WebhookResponse struct {
 	Events        []string `json:"events"`
 	SigningSecret string   `json:"signing_secret"`
 }
-
